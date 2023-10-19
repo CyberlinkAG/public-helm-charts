@@ -6,9 +6,9 @@ description: IP address management (IPAM) and data center infrastructure managem
 home: https://github.com/bootc/netbox-chart
 icon: https://raw.githubusercontent.com/netbox-community/netbox/develop/docs/netbox_logo.png
 maintainers:
-- name: Chris Boot
-  email: bootc@boo.tc
-  url: https://github.com/bootc
+- name: Jan Leuenberger
+  email: leuenberger@cyberlink.ch
+  url: https://github.com/cyberlinkag
 dependencies:
 - name: postgresql
   version: 12.x.x
