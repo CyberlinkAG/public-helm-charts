@@ -270,19 +270,11 @@ rackElevationDefaultUnitWidth: 220
 
 # Remote authentication support
 remoteAuth:
-  enabled: false
-  backend: netbox.authentication.RemoteUserBackend
-  header: HTTP_REMOTE_USER
-  autoCreateUser: true
-  defaultGroups: []
-  defaultPermissions: {}
-  groupSyncEnabled: false
-  groupHeader: HTTP_REMOTE_USER_GROUP
-  superuserGroups: []
-  superusers: []
-  staffGroups: []
-  staffUsers: []
-  groupSeparator: '|'
+  backend: social_core.backends.azuread_tenant.AzureADTenantOAuth2
+  defaultGroups:
+  - Users
+  enabled: true
+  groupSyncEnabled: true
 
   # The following options are specific for backend "netbox.authentication.LDAPBackend"
   # you can use an existing netbox secret with "ldap_bind_password" instead of "bindPassword"
@@ -349,6 +341,12 @@ shortDateTimeFormat: 'Y-m-d H:i'
 extraConfig:
   - secret:
       secretName: netbox-s3
+  - secret:
+      items:
+      - key: azure-sso.yaml
+        path: azure-sso.yaml
+      optional: false
+      secretName: azure-sso
   # - values:
   #     EXTRA_SETTING_ONE: example
   #     ANOTHER_SETTING: foobar
