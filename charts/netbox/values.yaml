@@ -346,7 +346,9 @@ shortDateTimeFormat: 'Y-m-d H:i'
 # You can pass additional YAML files to be loaded into NetBox's configuration.
 # These can be passed as arbitrary configuration values set in the chart, or
 # you can load arbitrary *.yaml keys from ConfigMaps and Secrets.
-extraConfig: []
+extraConfig:
+  - secret:
+      secretName: netbox-s3
   # - values:
   #     EXTRA_SETTING_ONE: example
   #     ANOTHER_SETTING: foobar
@@ -385,7 +387,7 @@ postgresql:
   ## Deploy PostgreSQL using bundled chart
   # To use an external database, set this to false and configure the settings
   # under externalDatabase
-  enabled: true
+  enabled: false
 
   auth:
     username: netbox
@@ -394,12 +396,12 @@ postgresql:
 ## External database settings
 # These are used if postgresql.enabled is false, and are ignored otherwise
 externalDatabase:
-  host: localhost
+  host: postgres-postgresql-ha-pgpool
   port: 5432
   database: netbox
   username: netbox
   password: ""
-  existingSecretName: ""
+  existingSecretName: postgres
   existingSecretKey: postgresql-password
 
   # The following settings also apply when using the bundled PostgreSQL chart:
@@ -412,7 +414,7 @@ redis:
   ## Deploy Redis using bundled chart
   # To use an external Redis instance, set this to false and configure the
   # settings under *both* tasksRedis *and* cachingRedis
-  enabled: true
+  enabled: false
 
 tasksRedis:
   database: 0
@@ -422,15 +424,15 @@ tasksRedis:
 
   # Used only when redis.enabled is false. host and port are not used if
   # sentinels are given.
-  host: netbox-redis
+  host: ''
   port: 6379
-  sentinels: []
-  #  - mysentinel:26379
-  sentinelService: netbox-redis
+  sentinels:
+   - redis-sentinel:26379
+  sentinelService: redis-sentinel
   sentinelTimeout: 300
   username: ""
   password: ""
-  existingSecretName: ""
+  existingSecretName: redis-sentinel
   existingSecretKey: redis-password
 
 cachingRedis:
@@ -441,15 +443,15 @@ cachingRedis:
 
   # Used only when redis.enabled is false. host and port are not used if
   # sentinels are given.
-  host: netbox-redis
+  host: ''
   port: 6379
-  sentinels: []
-  #  - mysentinel:26379
-  sentinelService: netbox-redis
+  sentinels:
+   - redis-sentinel:26379
+  sentinelService: redis-sentinel
   sentinelTimeout: 300
   username: ""
   password: ""
-  existingSecretName: ""
+  existingSecretName: redis-sentinel
   existingSecretKey: redis-password
 
 imagePullSecrets: []
@@ -854,3 +856,5 @@ worker:
   #  - name: init-myservice
   #    image: busybox
   #    command: ['sh', '-c', 'until nslookup myservice; do echo waiting for myservice; sleep 2; done;']
+
+
