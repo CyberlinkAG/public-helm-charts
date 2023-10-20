@@ -3,6 +3,31 @@ entries:
   netbox:
   - apiVersion: v2
     appVersion: v3.6.4
+    created: "2023-10-20T07:53:22.236244616Z"
+    dependencies:
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 12.x.x
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 17.x.x
+    description: IP address management (IPAM) and data center infrastructure management
+      (DCIM) tool
+    digest: 098100dcd7372244e3fdf4de97132797fe821588d59fe7248c6b6b1ffd7e2a47
+    home: https://github.com/CyberlinkAG/public-helm-charts/tree/master/charts/netbox
+    icon: https://raw.githubusercontent.com/netbox-community/netbox/develop/docs/netbox_logo.png
+    maintainers:
+    - email: leuenberger@cyberlink.ch
+      name: Jan Leuenberger
+      url: https://github.com/cyberlinkag
+    name: netbox
+    urls:
+    - https://github.com/CyberlinkAG/public-helm-charts/releases/download/netbox-5.0.3/netbox-5.0.3.tgz
+    version: 5.0.3
+  - apiVersion: v2
+    appVersion: v3.6.4
     created: "2023-10-20T07:24:12.37024633Z"
     dependencies:
     - condition: postgresql.enabled
@@ -76,4 +101,4 @@ entries:
     urls:
     - https://github.com/CyberlinkAG/public-helm-charts/releases/download/netbox-5.0.0/netbox-5.0.0.tgz
     version: 5.0.0
-generated: "2023-10-20T07:24:12.37026333Z"
+generated: "2023-10-20T07:53:22.236277216Z"
