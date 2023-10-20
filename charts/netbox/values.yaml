@@ -399,7 +399,7 @@ externalDatabase:
   host: postgres-postgresql-ha-pgpool
   port: 5432
   database: netbox
-  username: netbox
+  username: postgres
   password: ""
   existingSecretName: postgres
   existingSecretKey: postgresql-password
