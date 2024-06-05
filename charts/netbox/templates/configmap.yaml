@@ -65,6 +65,29 @@ data:
                                      in REDIS['caching']['SENTINELS']]
     {{- end }}
 
+    # START Custom Settings
+    from extras.validators import CustomValidator
+
+    class CustomDeviceValidator(CustomValidator):
+        def validate(self, instance, request):
+            if instance.role.name == 'Rack Access Device':
+                if not instance.name:
+                    self.fail("Name is required!", field='name')
+                if not instance.serial:
+                    self.fail("Serial number is required!", field='serial')
+                if not instance.serial.startswith('QA'):
+                    self.fail("Serial number is not in a valid format. It shoud start with QA!", field='serial')
+                if not instance.location:
+                    self.fail("Location is required!", field='location')
+                if not instance.rack:
+                    self.fail("Rack is required!", field='rack')
+
+    CUSTOM_VALIDATORS = {
+        "dcim.device": [
+            CustomDeviceValidator(),
+        ]
+    }
+    # END Custom Settings
   netbox.yaml: |
     ALLOWED_HOSTS: {{ toJson .Values.allowedHosts }}
 
