@@ -1,20 +1,18 @@
 apiVersion: v2
 name: netbox
-version: 6.0.4
-appVersion: v4.0.3
+version: 7.0.0
+appVersion: v4.6.7
 description: IP address management (IPAM) and data center infrastructure management (DCIM) tool
 home: https://github.com/CyberlinkAG/public-helm-charts/tree/master/charts/netbox
-icon: https://raw.githubusercontent.com/netbox-community/netbox/develop/docs/netbox_logo.png
+icon: https://raw.githubusercontent.com/netbox-community/netbox/main/docs/netbox_logo_light.svg
+sources:
+- https://github.com/netbox-community/netbox-chart
+- https://github.com/netbox-community/netbox
 maintainers:
 - name: Jan Leuenberger
   email: leuenberger@cyberlink.ch
   url: https://github.com/cyberlinkag
 dependencies:
-- name: postgresql
-  version: 12.x.x
-  repository: https://charts.bitnami.com/bitnami
-  condition: postgresql.enabled
-- name: redis
-  version: 17.x.x
-  repository: https://charts.bitnami.com/bitnami
-  condition: redis.enabled
+- name: netbox
+  version: 8.3.51
+  repository: oci://ghcr.io/netbox-community/netbox-chart

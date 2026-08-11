@@ -1,69 +1,52 @@
-{{- if .Values.ingress.enabled -}}
-{{- $fullName := include "netbox.fullname" . -}}
-{{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
-  {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
-  {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}
-  {{- end }}
-{{- end }}
-{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+{{/*
+Ingress for the NetBox web service.
+
+The upstream chart takes its hostname as a list (`ingress.hosts[]`,
+`ingress.tls[]`), and Rancher's questions.yaml cannot fill in list values
+(rancher/rancher#32336). So the upstream Ingress stays disabled and this one is
+built from the single `hostname` value instead.
+
+The backend is the Service of the upstream chart, whose name is pinned through
+`netbox.fullnameOverride` and whose port is called `http`.
+*/}}
+{{- if .Values.ingress.enabled }}
+{{- $host := required "hostname is required: set it to the FQDN this instance is served on" .Values.hostname }}
+{{- $service := required "netbox.fullnameOverride is required: the Ingress needs a fixed Service name" .Values.netbox.fullnameOverride }}
 apiVersion: networking.k8s.io/v1
-{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-apiVersion: networking.k8s.io/v1beta1
-{{- else -}}
-apiVersion: extensions/v1beta1
-{{- end }}
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: {{ .Release.Name }}
   labels:
-    {{- include "netbox.labels" . | nindent 4 }}
-  {{- if or .Values.commonAnnotations .Values.ingress.annotations }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
+  {{- if or .Values.ingress.certManagerIssuer .Values.ingress.annotations }}
   annotations:
-  {{- with .Values.ingress.annotations }}
+    {{- with .Values.ingress.certManagerIssuer }}
+    cert-manager.io/cluster-issuer: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .Values.commonAnnotations }}
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
   {{- end }}
 spec:
-  {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.ingress.className }}
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . | quote }}
   {{- end }}
-  {{- if .Values.ingress.tls }}
   tls:
-    {{- range .Values.ingress.tls }}
-    - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
-        {{- end }}
-      secretName: {{ .secretName }}
-    {{- end }}
-  {{- end }}
+  - hosts:
+    - {{ $host | quote }}
+    secretName: {{ .Values.ingress.tlsSecretName | quote }}
   rules:
-    {{- range .Values.ingress.hosts }}
-    - host: {{ .host | quote }}
-      http:
-        paths:
-          {{- range .paths }}
-          {{- if kindIs "string" . }}
-          - path: {{ . }}
-            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
-            pathType: Prefix
-            {{- end }}
-            backend:
-              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
-              service:
-                name: {{ $fullName }}
-                port:
-                  name: http
-              {{- else }}
-              serviceName: {{ $fullName }}
-              servicePort: http
-              {{- end }}
-          {{- else }}
-          - {{ . | toYaml | indent 12 | trim }}
-          {{- end }}
-          {{- end }}
-    {{- end }}
+  - host: {{ $host | quote }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.path | quote }}
+        pathType: {{ .Values.ingress.pathType | quote }}
+        backend:
+          service:
+            name: {{ $service | quote }}
+            port:
+              name: http
 {{- end }}

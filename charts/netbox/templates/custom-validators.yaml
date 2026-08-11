@@ -1,0 +1,42 @@
+{{/*
+Cyberlink-specific custom validators.
+
+This ConfigMap is mounted into the NetBox package directory (see `extraVolumes` /
+`extraVolumeMounts` in values.yaml) so the classes below can be referenced from
+CUSTOM_VALIDATORS by their dotted path, e.g.
+`netbox.cyberlink_validators.CustomDeviceValidator`.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-custom-validators
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
+data:
+  cyberlink_validators.py: |
+    from extras.validators import CustomValidator
+
+
+    class CustomDeviceValidator(CustomValidator):
+        """Enforce complete records for rack access devices."""
+
+        def validate(self, instance, request):
+            if instance.role.name != 'Rack Access Device':
+                return
+
+            if not instance.name:
+                self.fail("Name is required!", field='name')
+            if not instance.serial:
+                self.fail("Serial number is required!", field='serial')
+            elif not instance.serial.startswith('QA'):
+                self.fail(
+                    "Serial number is not in a valid format. It should start with QA!",
+                    field='serial',
+                )
+            if not instance.location:
+                self.fail("Location is required!", field='location')
+            if not instance.rack:
+                self.fail("Rack is required!", field='rack')
