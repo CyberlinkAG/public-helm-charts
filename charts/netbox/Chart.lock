@@ -1,9 +1,6 @@
 dependencies:
-- name: postgresql
-  repository: https://charts.bitnami.com/bitnami
-  version: 12.1.15
-- name: redis
-  repository: https://charts.bitnami.com/bitnami
-  version: 17.7.3
-digest: sha256:1dee86ef580e1be93fb977654ed69afb48bf21e303bdb5f9a3d8177ad355fb27
-generated: "2023-02-12T16:31:49.074322Z"
+- name: netbox
+  repository: oci://ghcr.io/netbox-community/netbox-chart
+  version: 8.3.51
+digest: sha256:d0deab899973db92b2072636602ff24373bbd046c43022ff5b37319db751c854
+generated: "2026-08-11T09:13:22.367592+02:00"

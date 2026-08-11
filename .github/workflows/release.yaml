@@ -29,10 +29,15 @@ jobs:
           version: 'latest' # default is latest (stable)
           token: ${{ secrets.GITHUB_TOKEN }} # only needed if version is 'latest'
 
-      - name: Add repositories
+      - name: Build chart dependencies
         run: |
-          for dir in $(ls -d charts/*/); do
-            helm dependency list $dir 2> /dev/null | tail +2 | head -n -1 | awk '{ print "helm repo add " $1 " " $3 }' | while read cmd; do $cmd; done
+          for dir in charts/*/; do
+            # Classic repositories need to be registered first; OCI ones are pulled
+            # directly by `helm dependency build`.
+            helm dependency list "$dir" 2> /dev/null \
+              | awk 'NR > 1 && $3 ~ /^https?:\/\// { print $1, $3 }' \
+              | while read -r name repo; do helm repo add "$name" "$repo"; done
+            helm dependency build "$dir"
           done
 
       - name: Run chart-releaser

@@ -1,0 +1,135 @@
+# Form shown by Rancher when installing this chart (Apps -> Charts -> NetBox).
+#
+# Only scalar paths belong here: Rancher cannot set list values such as
+# `netbox.ingress.hosts[0].host` (rancher/rancher#32336). That is why the chart
+# renders its own Ingress from the scalar `hostname` below.
+#
+# Passwords are deliberately absent — they live in the `netbox-secrets` Secret
+# that is created in the namespace before installing, see the chart README.
+questions:
+
+# --- Ingress ------------------------------------------------------------------
+- variable: hostname
+  label: Hostname
+  description: "Fully qualified domain name this instance is served on, e.g. netbox.example.com. Also used for the TLS certificate."
+  type: hostname
+  required: true
+  group: "Ingress"
+- variable: ingress.className
+  label: Ingress class
+  description: "Name of the IngressClass to use."
+  type: string
+  default: "nginx"
+  group: "Ingress"
+- variable: ingress.certManagerIssuer
+  label: cert-manager ClusterIssuer
+  description: "ClusterIssuer that issues the certificate. Leave empty to manage the TLS secret yourself."
+  type: string
+  default: ""
+  group: "Ingress"
+- variable: ingress.tlsSecretName
+  label: TLS secret name
+  description: "Secret the certificate is stored in. Created by cert-manager when a ClusterIssuer is given."
+  type: string
+  default: "netbox-tls"
+  group: "Ingress"
+
+# --- Database -----------------------------------------------------------------
+- variable: netbox.externalDatabase.host
+  label: PostgreSQL host
+  description: "Hostname or IP of the external PostgreSQL server. NetBox 4.6 needs PostgreSQL 14 or newer."
+  type: string
+  required: true
+  group: "Database"
+- variable: netbox.externalDatabase.port
+  label: PostgreSQL port
+  type: int
+  default: 5432
+  min: 1
+  max: 65535
+  group: "Database"
+- variable: netbox.externalDatabase.database
+  label: Database name
+  description: "Must exist already; the chart does not create it."
+  type: string
+  default: "netbox"
+  required: true
+  group: "Database"
+- variable: netbox.externalDatabase.username
+  label: Database user
+  description: "The password for this user comes from the db_password key of the netbox-secrets Secret."
+  type: string
+  default: "netbox"
+  required: true
+  group: "Database"
+- variable: netbox.externalDatabase.options.sslmode
+  label: TLS mode
+  description: "Use prefer only if the server does not offer TLS."
+  type: enum
+  default: "require"
+  options:
+  - "require"
+  - "verify-full"
+  - "verify-ca"
+  - "prefer"
+  group: "Database"
+
+# --- Scaling ------------------------------------------------------------------
+- variable: netbox.replicaCount
+  label: Web replicas
+  description: "More than one needs a storage class that supports ReadWriteMany, because all web pods share the media volume."
+  type: int
+  default: 1
+  min: 1
+  group: "Scaling"
+- variable: netbox.worker.replicaCount
+  label: Worker replicas
+  description: "Background job workers (rqworker)."
+  type: int
+  default: 1
+  min: 1
+  group: "Scaling"
+- variable: netbox.resourcesPreset
+  label: Resource preset
+  description: "Requests and limits for the web and worker pods."
+  type: enum
+  default: "medium"
+  options:
+  - "small"
+  - "medium"
+  - "large"
+  - "xlarge"
+  group: "Scaling"
+
+# --- Storage ------------------------------------------------------------------
+- variable: netbox.persistence.storageClass
+  label: Storage class
+  description: "For the media volume (image attachments). Empty uses the cluster default."
+  type: storageclass
+  default: ""
+  group: "Storage"
+- variable: netbox.persistence.size
+  label: Media volume size
+  type: string
+  default: "1Gi"
+  group: "Storage"
+- variable: netbox.valkey.primary.persistence.size
+  label: Valkey volume size
+  description: "Valkey ships with the instance and holds the task queue and the cache."
+  type: string
+  default: "2Gi"
+  group: "Storage"
+
+# --- Monitoring ---------------------------------------------------------------
+- variable: netbox.metrics.enabled
+  label: Expose Prometheus metrics
+  type: boolean
+  default: false
+  group: "Monitoring"
+- variable: netbox.metrics.serviceMonitor.enabled
+  label: Create a ServiceMonitor
+  description: "Needs the Prometheus Operator CRDs in the cluster."
+  type: boolean
+  default: false
+  show_if: "netbox.metrics.enabled=true"
+  group: "Monitoring"
