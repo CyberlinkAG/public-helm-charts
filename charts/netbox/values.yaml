@@ -99,6 +99,78 @@ netbox:
   superuser:
     existingSecret: netbox-secrets
 
+  ## Media (image attachments) go to S3, so the local volume is not needed. That
+  ## also means the web deployment can be scaled past one replica.
+  persistence:
+    enabled: false
+
+  ## Object storage. Only `bucket_name` and `endpoint_url` differ per instance;
+  ## both are asked for in the Rancher form and validated in NOTES.txt.
+  ## NetBox merges this over its DEFAULT_STORAGES, so `staticfiles` and
+  ## `scripts` keep their defaults.
+  ## Options reference:
+  ## https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
+  storages:
+    default:
+      BACKEND: storages.backends.s3.S3Storage
+      OPTIONS:
+        bucket_name: ""
+        # Full URL including scheme, e.g. https://s3.example.com. Also set this
+        # for AWS itself (https://s3.<region>.amazonaws.com) — an empty value
+        # would reach boto3 as an empty endpoint.
+        endpoint_url: ""
+        region_name: us-east-1
+        file_overwrite: false
+        # Ceph RGW and older Minio deployments need path-style addressing:
+        # addressing_style: path
+
+  ## The S3 credentials deliberately do not go into `storages.OPTIONS`: that
+  ## whole block is rendered into the ConfigMap in cleartext. django-storages
+  ## 1.14.6 (the version in NetBox 4.6) resolves AWS_ACCESS_KEY_ID and
+  ## AWS_SECRET_ACCESS_KEY from the environment, so they come from the Secret.
+  ## Web pods and worker pods both write attachments — keep the blocks in sync.
+  extraEnvs: &s3Credentials
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: netbox-secrets
+        key: s3_access_key
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: netbox-secrets
+        key: s3_secret_key
+
+  ## Single sign-on against Entra ID (Azure AD), through the social-auth backend
+  ## that ships with NetBox. `remoteAuth.enabled` stays false on purpose — that
+  ## switch turns on header-based authentication, which is a different thing.
+  ##
+  ## The client ID, client secret and tenant ID are not chart values: they are a
+  ## `sso.yaml` key inside netbox-secrets, mounted as an extra config file, so
+  ## the client secret never lands in a ConfigMap. See the README for the app
+  ## registration and hack/create-netbox-secret.sh for the file's contents.
+  ##
+  ## NetBox appends its ObjectPermissionBackend, which extends Django's
+  ## ModelBackend, so local login with the superuser keeps working alongside SSO.
+  remoteAuth:
+    enabled: false
+    backends:
+    - social_core.backends.azuread_tenant.AzureADTenantOAuth2
+    autoCreateUser: true
+    ## Groups every SSO user is put into on first login. They have to exist in
+    ## NetBox already; the pipeline logs an error for names it cannot find.
+    defaultGroups: []
+
+  extraConfig:
+  - secret:
+      secretName: netbox-secrets
+      items:
+      - key: sso.yaml
+        path: sso.yaml
+      ## Optional so that a missing key does not leave the pods in
+      ## ContainerCreating — SSO simply stays unconfigured, local login works.
+      optional: true
+
   ## Cyberlink: enforce complete records for rack access devices.
   ## The class lives in the ConfigMap rendered by this chart and is mounted into
   ## the NetBox package directory below.
@@ -119,6 +191,8 @@ netbox:
     readOnly: true
 
   worker:
+    ## Same S3 credentials as the web pods, see above.
+    extraEnvs: *s3Credentials
     extraVolumes:
     - name: custom-validators
       configMap:
