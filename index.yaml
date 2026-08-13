@@ -3,6 +3,29 @@ entries:
   netbox:
   - apiVersion: v2
     appVersion: v4.6.7
+    created: "2026-08-13T12:14:48.305614342Z"
+    dependencies:
+    - name: netbox
+      repository: oci://ghcr.io/netbox-community/netbox-chart
+      version: 8.3.51
+    description: IP address management (IPAM) and data center infrastructure management
+      (DCIM) tool
+    digest: b9115cf20bc9de45eae0739e0411b165f4777d1aa8bc3848566b5dcb9d06804c
+    home: https://github.com/CyberlinkAG/public-helm-charts/tree/master/charts/netbox
+    icon: https://raw.githubusercontent.com/netbox-community/netbox/main/docs/netbox_logo_light.svg
+    maintainers:
+    - email: leuenberger@cyberlink.ch
+      name: Jan Leuenberger
+      url: https://github.com/cyberlinkag
+    name: netbox
+    sources:
+    - https://github.com/netbox-community/netbox-chart
+    - https://github.com/netbox-community/netbox
+    urls:
+    - https://github.com/CyberlinkAG/public-helm-charts/releases/download/netbox-8.0.0/netbox-8.0.0.tgz
+    version: 8.0.0
+  - apiVersion: v2
+    appVersion: v4.6.7
     created: "2026-08-11T11:15:45.565415363Z"
     dependencies:
     - name: netbox
@@ -349,4 +372,4 @@ entries:
     urls:
     - https://github.com/CyberlinkAG/public-helm-charts/releases/download/netbox-4.9.0/netbox-4.9.0.tgz
     version: 4.9.0
-generated: "2026-08-11T11:15:45.56550806Z"
+generated: "2026-08-13T12:14:48.305744665Z"
