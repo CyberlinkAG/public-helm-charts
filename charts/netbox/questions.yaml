@@ -102,16 +102,26 @@ questions:
   group: "Scaling"
 
 # --- Storage ------------------------------------------------------------------
-- variable: netbox.persistence.storageClass
-  label: Storage class
-  description: "For the media volume (image attachments). Empty uses the cluster default."
-  type: storageclass
-  default: ""
-  group: "Storage"
-- variable: netbox.persistence.size
-  label: Media volume size
+# Media goes to S3; the credentials come from the netbox-secrets Secret, not from
+# here. Setting netbox.storages back to {} and netbox.persistence.enabled to true
+# in the YAML tab switches to a local volume.
+- variable: netbox.storages.default.OPTIONS.bucket_name
+  label: S3 bucket
+  description: "Bucket for image attachments. Must exist already."
   type: string
-  default: "1Gi"
+  required: true
+  group: "Storage"
+- variable: netbox.storages.default.OPTIONS.endpoint_url
+  label: S3 endpoint URL
+  description: "Full URL including scheme, e.g. https://s3.example.com. For AWS use https://s3.<region>.amazonaws.com."
+  type: string
+  required: true
+  group: "Storage"
+- variable: netbox.storages.default.OPTIONS.region_name
+  label: S3 region
+  description: "Ignored by most S3-compatible providers, but boto3 wants a value."
+  type: string
+  default: "us-east-1"
   group: "Storage"
 - variable: netbox.valkey.primary.persistence.size
   label: Valkey volume size

@@ -2,7 +2,18 @@
 Only the top-level NOTES.txt is displayed, so this replaces the upstream one.
 The upstream template is still rendered, which is where the validation of
 externalDatabase.host / .database / .port comes from.
+
+The S3 options below have no upstream validation, and an empty bucket or
+endpoint would only surface as a boto3 error on the first file upload.
 */}}
+{{- with (dig "storages" "default" "OPTIONS" dict .Values.netbox) }}
+{{- if not .bucket_name }}
+{{- fail "netbox.storages.default.OPTIONS.bucket_name is required: media is stored in S3. Set netbox.persistence.enabled=true and netbox.storages={} to use a local volume instead." }}
+{{- end }}
+{{- if not .endpoint_url }}
+{{- fail "netbox.storages.default.OPTIONS.endpoint_url is required: give the full URL including scheme, e.g. https://s3.example.com" }}
+{{- end }}
+{{- end }}
 NetBox {{ .Chart.AppVersion }} was deployed as {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
 
 {{ if .Values.ingress.enabled -}}
@@ -18,7 +29,14 @@ No Ingress was rendered (ingress.enabled is false). Reach the web service with:
     kubectl -n {{ .Release.Namespace }} port-forward svc/{{ .Values.netbox.fullnameOverride }} 8080:80
 
 {{ end -}}
-Log in with the credentials from the `netbox-secrets` Secret:
+{{ if has "social_core.backends.azuread_tenant.AzureADTenantOAuth2" .Values.netbox.remoteAuth.backends -}}
+Entra ID sign-in is enabled. The redirect URI to register for the app is:
+
+    https://{{ .Values.hostname }}/oauth/complete/azuread-tenant-oauth2/
+
+{{ end -}}
+Log in with the credentials from the `netbox-secrets` Secret — local login works
+alongside SSO:
 
     kubectl -n {{ .Release.Namespace }} get secret netbox-secrets -o jsonpath='{.data.username}' | base64 -d
     kubectl -n {{ .Release.Namespace }} get secret netbox-secrets -o jsonpath='{.data.password}' | base64 -d
