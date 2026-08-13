@@ -230,6 +230,22 @@ into `/opt/netbox/netbox/reports` does nothing. Upload them through the UI, thro
 
 ## Upgrading
 
+### From 7.0.0 to 8.0.0
+
+8.0.0 moves media to S3 and turns on Entra ID sign-in. Coming from 6.x, read the next
+section as well — it covers everything else that changed.
+
+- Add `s3_access_key` and `s3_secret_key` to `netbox-secrets`, and set
+  `netbox.storages.default.OPTIONS.bucket_name` and `.endpoint_url`. Rendering fails
+  without them. Copy the contents of the old media PVC into the bucket first, otherwise
+  existing image attachments 404; the PVC is not deleted by the upgrade, so there is time.
+- To stay on a local volume, set `netbox.storages: {}` and `netbox.persistence.enabled: true`.
+- Register the Entra app and add `sso.yaml` to the Secret, or switch
+  `netbox.remoteAuth.backends` back to `[netbox.authentication.RemoteUserBackend]`. Local
+  login keeps working either way.
+- The Rancher form lost the storage class and media size fields and gained bucket, endpoint
+  and region.
+
 ### From 6.x to 7.0.0
 
 Chart 7.0.0 replaces our fork with the upstream chart and jumps NetBox from v4.0.3 to
