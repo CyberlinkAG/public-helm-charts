@@ -123,9 +123,32 @@ netbox:
 
 ## Dev, test and prod
 
-Version-controlled example values live in [`environments/netbox`](../../environments/netbox).
-See its [deployment guide](../../environments/netbox/README.md) for installation and
-promotion of a fixed chart version through dev, test and prod.
+Install this chart three times through Rancher Apps, using separate namespaces:
+`netbox-dev`, `netbox-test` and `netbox-prod`. Each release can be named `netbox`;
+the chart's fixed resource names require one instance per namespace. For an
+existing production installation, keep its current release name and namespace.
+
+Maintain each instance's values directly in Rancher's YAML editor: hostname,
+external PostgreSQL host, database and user, S3 bucket and endpoint, and ingress
+settings. Each environment needs its own database and database user, S3 bucket
+and credentials, and a `netbox-secrets` Secret in its namespace. The PostgreSQL
+server and S3 endpoint may be shared. Valkey is deployed per release. Follow the
+installation steps above for Secrets and Entra app registration.
+
+For updates, select an explicit chart version in Rancher and check the retained
+values against the new chart defaults. Deploy the same version first to dev,
+then test, then prod. Before promoting, check local and SSO login, device
+validation, media uploads/downloads, API access and background jobs.
+
+Back up the database and media before upgrading and preserve the Secret securely.
+A Helm rollback does not restore database changes made by NetBox migrations;
+recovery may require restoring the matching database backup and media state.
+
+When preparing a new chart release, update the upstream dependency in
+`Chart.yaml`, regenerate `Chart.lock` with `helm dependency update charts/netbox`,
+and bump the wrapper chart version. Align `appVersion` with the selected NetBox
+image; changing `appVersion` alone does not select a new image. Validate with the
+intended values before publishing through the existing release workflow.
 
 ## Chart-specific values
 
