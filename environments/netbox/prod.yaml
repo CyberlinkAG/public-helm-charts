@@ -1,0 +1,17 @@
+# Example configuration: replace the .example.com endpoints before deployment.
+# Release: netbox | Namespace: netbox-prod
+# Credentials belong in netbox-secrets in this namespace, never in this file.
+hostname: netbox-prod.example.com
+netbox:
+  externalDatabase:
+    host: pg.example.com
+    database: netbox_prod
+    username: netbox_prod
+  storages:
+    default:
+      OPTIONS:
+        bucket_name: netbox-prod
+        endpoint_url: https://s3.example.com
+  replicaCount: 1
+  worker:
+    replicaCount: 1

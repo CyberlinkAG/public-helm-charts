@@ -121,6 +121,12 @@ netbox:
         endpoint_url: https://s3.example.com
 ```
 
+## Dev, test and prod
+
+Version-controlled example values live in [`environments/netbox`](../../environments/netbox).
+See its [deployment guide](../../environments/netbox/README.md) for installation and
+promotion of a fixed chart version through dev, test and prod.
+
 ## Chart-specific values
 
 Everything not under `netbox:` belongs to this chart:
